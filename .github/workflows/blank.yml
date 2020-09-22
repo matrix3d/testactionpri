@@ -36,6 +36,7 @@ jobs:
       - name: adt
         run: |
           cd game
+          dir
           pack.bat
       - name: build project
         run: |
