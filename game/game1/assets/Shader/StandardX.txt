@@ -1,0 +1,337 @@
+//兼容老版本数据
+varying tex0_color;
+varying out_uv2;
+varying out_viewPosition;
+varying out_normal;
+varying out_normal1;
+varying out_normal2;
+varying out_shadowPosition;
+uniform _MainTex_ST;
+uniform equipColor;
+uniform float smoothness=0.5;
+uniform emissionColor;
+uniform damageColor;
+uniform _Color;
+uniform _SSSColor;
+uniform float _Cutoff;
+uniform lightmapScaleOffset;
+sampler _MainTex;
+sampler metallicMap=[0,0.5,1,1];
+sampler normalMap;
+sampler lightMap;
+sampler shadowMap;
+sampler lightCookieMap;
+
+void skinPosition()
+{
+	var skinTemp;
+	var bonePos = bones[VB_BONE_WEIGHT.x];
+	var quat = frc(bonePos);
+	bonePos = (bonePos - quat) * 0.00048828125;
+	quat = quat * 2.004008016032064 - 1;
+	// 旋转
+	skinTemp.xyz = crs(quat.xyz, VB_POSITION) * 2;
+	pos.xyz = crs(quat.xyz, skinTemp.xyz) + VB_POSITION + quat.w * skinTemp.xyz;
+	// 缩放位移
+	pos.xyz = (pos.xyz + bonePos.xyz) * bonesPos.w + bonesPos.xyz;
+}
+
+void skinPositionAndNormal()
+{
+	skinPosition();
+	skinTemp.xyz = crs(quat.xyz, VB_NORMAL) * 2;
+	normal.xyz = crs(quat.xyz, skinTemp.xyz) + VB_NORMAL + quat.w * skinTemp.xyz;
+	normal.xyz=m33(normal.xyz, vm);
+}
+
+Pass{
+#RenderQueue 2000
+#Blend one zero
+
+void vs()
+{
+	var pos;
+	var normal;
+#if VB_BONE_WEIGHT
+	skinPositionAndNormal();
+#else
+	pos.xyz = m34(VB_POSITION, wm);
+	normal.xyz = m33(VB_NORMAL, wvm);
+#endif
+	pos.w=1;
+
+#if lightMap
+#if lightmapScaleOffset
+	var lightmapUV;
+	lightmapUV.x = VB_UV2.x;
+	lightmapUV.y = 1-VB_UV2.y;
+	lightmapUV.xy *= lightmapScaleOffset.xy;
+	lightmapUV.xy += lightmapScaleOffset.zw;
+	lightmapUV.y = 1-lightmapUV.y;
+	out_uv2 = lightmapUV.xy;
+#endif
+#elif lightCookieMap
+	var lightmapUV = pos.xz/256;
+	lightmapUV.y = 1-lightmapUV.y;
+	out_uv2 = lightmapUV;
+#endif
+
+#if shadowMap
+	out_shadowPosition = m44(pos,lm);
+#endif
+
+	// out
+	pos = m44(pos, vpm);
+	o = pos;
+	normal.xyz = nrm(normal.xyz);
+
+#ifndef DEFERRED
+	// viewDirection
+	//pos.x /= pm.x;
+	//pos.y /= pm[1].y;
+	//pos.xyz = nrm(pos.xyw);
+	//pos.xyz = [0,0,1];
+	out_viewPosition = pos;
+#endif
+
+#if _MainTex_ST
+	tex0_color.xy = VB_UV.xy * _MainTex_ST.xy + _MainTex_ST.zw;
+#else 
+	tex0_color.xy = VB_UV.xy;
+#endif
+		
+#if verticeAlpha
+	tex0_color.zw = VB_ALPHA.x;
+#else
+	tex0_color.zw = VB_UV.x;
+#endif
+
+	// TANGENT
+#if normalMap
+	var tangent;
+	#if VB_BONE_WEIGHT
+	// 旋转
+	skinTemp.xyz = crs(quat.xyz, VB_TANGENT) * 2;
+	tangent.xyz = crs(quat.xyz, skinTemp.xyz) + VB_TANGENT + quat.w * skinTemp.xyz;
+	tangent.xyz=m33(tangent.xyz, vm);
+	#else
+	tangent.xyz = m33(VB_TANGENT, wvm);
+	#endif
+	// tangent
+	tangent.xyz = nrm(tangent.xyz);
+	out_normal.x = tangent.x;
+	out_normal1.x = tangent.y;
+	out_normal2.x = tangent.z;
+	// binormal
+	tangent.xyz = crs(normal.xyz, tangent.xyz);
+	tangent.xyz = nrm(tangent.xyz);
+	out_normal.y = tangent.x;
+	out_normal1.y = tangent.y;
+	out_normal2.y = tangent.z;
+	// normal
+	out_normal.zw = normal.x;
+	out_normal1.zw = normal.y;
+	out_normal2.zw = normal.z;
+#else
+	out_normal = normal.xyz;
+#endif
+
+}
+
+void ps()
+{
+	var albedo = tex(tex0_color, _MainTex<2d, repeat, nearest, miplinear>);
+
+#if _Color
+	albedo *= _Color;
+#endif
+
+#if _Cutoff
+	albedo.w -= _Cutoff;
+	kil(albedo.w);
+	albedo.w = 0.5;
+#endif
+	
+	var normal;
+	float4 diffuse;
+	
+#if _ALPHABLEND_ON
+	#Blend sourceAlpha oneMinusSourceAlpha
+	#ColorMask RGB
+	diffuse.w = albedo.w;
+	albedo.w = 0.5;
+#elif _ALPHAPREMULTIPLY_ON
+	#Blend sourceAlpha oneMinusSourceAlpha
+	#ColorMask RGB
+	diffuse.w = albedo.w;
+	albedo.w = 0.5;
+#else
+	diffuse.w = out_viewPosition.z/out_viewPosition.w;// Depth
+#endif
+	
+#if verticeAlpha
+	#Blend sourceAlpha oneMinusSourceAlpha
+	#ZTest lessEqual
+	#ColorMask RGB
+	diffuse.w = tex0_color.z;
+#endif
+	
+	// 金属度
+	// 当材质为金属，漫反射总比率 = 0.0（没有漫反射）  
+	// 当材质为非金属，漫反射总比率 = unity_ColorSpaceDielectricSpec.a = 1-reflectivity（接近1.0）  
+	// 当材质介于两者之间，按金属度 metallic插值  
+	var metallicColor = tex(tex0_color.xy, metallicMap<2d, repeat, nearest, miplinear>);
+	float metallic = metallicColor.x;
+	float smoothnessValue = metallicColor.y * smoothness;
+	float oneMinusReflectivity = 1-metallic;
+	oneMinusReflectivity *= 0.9;
+	
+	// 法线
+#if normalMap
+	normal = tex(tex0_color.xy, normalMap<2d, repeat, nearest, miplinear>);
+	normal.xyz -=0.5;
+	normal.xyz = m33(normal.xyz, out_normal);
+	normal.xyz = nrm(normal.xyz);
+#else
+	normal.xyz = nrm(out_normal.xyz);
+#endif
+	// GLOW
+#if glow
+	var glowColor;
+	glowColor.xy = normal.zy /* metallic*/ * 16;
+	glowColor.xy += time.y;
+	glowColor.y += normal.x+time.w;
+	float glowC = sat(sin(glowColor.x)+cos(glowColor.y));
+	glowColor.xyz = (1.0-glowC) * glowC * equipColor;
+	// 去除肤色
+	glowColor.xyz *= metallic*5;
+			
+	albedo.xyz +=glowColor.xyz;
+#endif
+		
+#if DEFERRED
+	diffuse.xyz = albedo.xyz;
+	o0 = diffuse;
+	normal.z = out_normal.w;
+	normal.w = 1;
+	o1 = normal;
+#else
+	float4 viewDir = -out_viewPosition;
+	viewDir.x /= pm.x;
+	viewDir.y /= pm[1].y;
+	viewDir.xyz = nrm(viewDir.xyw);
+	
+	float perceptualRoughness = 1-smoothnessValue;
+	// half3 halfDir = Unity_SafeNormalize (light.dir + viewDir);
+	float3 halfDir = nrm(light.xyz + viewDir);
+	float nv = abs(dp3(normal.xyz, viewDir));
+		
+	float nl = saturate(dot(normal.xyz, light.xyz));
+	float nh = saturate(dot(normal.xyz, halfDir));
+
+	float lv = saturate(dot(light.xyz, viewDir));
+	float lh = saturate(dot(light.xyz, halfDir));
+	
+	// Diffuse term
+	float fd90 = 2 * lh * lh * perceptualRoughness+0.5;
+	fd90 -= 1;
+	// Two schlick fresnel term 菲涅尔 边角有更亮的光
+	float lightScatter   = pow(1 - nl,5)*fd90+1;
+	float viewScatter    = pow(1 - nv,5)*fd90+1;
+	float diffuseTerm = lightScatter * viewScatter*nl;
+		
+	// Specular term
+	float roughness = perceptualRoughness*perceptualRoughness;
+	float roughness2 = roughness*roughness;
+	// V
+	float k = roughness * 0.797884560802865;// c = sqrt(2 / Pi)
+	float oneMinusK = 1 - k;
+	float gL = nl * oneMinusK + k;
+	float gV = nv * oneMinusK + k;
+	float V = 0.25 / (gL * gV + 1e-5);
+	// D
+	float sq = max(1e-4, roughness2);
+	float n = (2 / sq) - 2;                          // https://dl.dropboxusercontent.com/u/55891920/papers/mm_brdf.pdf
+	n = max(n, 1e-4);                                  // prevent possible cases of pow(0,0), which could happen when roughness is 1.0 and NdotH is zero
+		
+	float normTerm = (n + 2) * 0.5;
+	float specTerm = pow (nh, n);
+	float D = specTerm * normTerm;
+	
+	float specularTerm = V * D * nl;
+	specularTerm = max(0, specularTerm);
+		
+	//float surfaceReduction = 1.0 / (roughness2 + 1.0);           // fade \in [0.5;1]
+	//float grazingTerm = saturate(smoothnessValue + (1-oneMinusReflectivity));
+
+	//half3 color = diffColor * (gi.diffuse + light.color * diffuseTerm)
+        //            + specularTerm * light.color * FresnelTerm (specColor, lh)
+        //            + surfaceReduction * gi.specular * FresnelLerp (specColor, grazingTerm, nv);
+
+	diffuseTerm += 0.06;
+
+#if lightEquip
+	diffuseTerm += 0.38;
+#endif
+
+#if lightWeapon
+	diffuseTerm += 0.68;
+#endif
+
+#if _SSSColor
+	diffuseTerm += 0.68;
+#endif
+
+	diffuse.xyz = albedo.xyz * diffuseTerm*oneMinusReflectivity;
+	float3 specColor = albedo.xyz*metallic+(1-metallic)*[0.1,0.1,0.13];
+	//specColor +=(1-specColor)*pow(1-lh,5);
+	diffuse.xyz +=specularTerm*specColor;
+	//diffuse.xyz = lightScatter * viewScatter;
+	
+#if lightMap
+	diffuse.xyz = albedo.xyz * tex(out_uv2.xy, lightMap<2d, repeat, nearest, miplinear>);
+#elif lightCookieMap
+	diffuse.xyz *= tex(out_uv2.xy, lightCookieMap<2d,clamp,linear,nomip>)*2;
+#endif
+
+#if lightMap
+#elif shadowMap
+	var shadowPos = out_shadowPosition/out_shadowPosition.w;
+	shadowPos.y = -shadowPos.y;
+	shadowPos.xy = shadowPos.xy*0.5+0.5;
+	
+	/*var shadowDepth = tex(shadowPos.xy, shadowMap<2d,clamp,nearest,nomip>);
+	float depth = sge(shadowDepth.x, shadowPos.z);
+	diffuse.xyz =  sat(depth+0.5);*/
+	
+	shadowPos.xy += 0.00048828125;
+	var shadowDepth = tex(shadowPos.xy, shadowMap<2d,clamp,linear,nomip>);
+	float depth = sge(shadowDepth.x, shadowPos.z);
+	shadowPos.x -= 0.0009765625;
+	shadowDepth = tex(shadowPos.xy, shadowMap<2d,clamp,linear,nomip>);
+	depth+=sge(shadowDepth.x, shadowPos.z);
+	shadowPos.y -= 0.0009765625;
+	shadowDepth = tex(shadowPos.xy, shadowMap<2d,clamp,linear,nomip>);
+	depth+=sge(shadowDepth.x, shadowPos.z);
+	shadowPos.x += 0.0009765625;
+	shadowDepth = tex(shadowPos.xy, shadowMap<2d,clamp,linear,nomip>);
+	diffuse.xyz *=  sat(depth*0.25+0.5);
+#endif
+
+//次表面光照
+#if _SSSColor
+	diffuse.xyz += _SSSColor.xyz * (pow(1-abs(normal.z),_SSSColor.w));
+#endif
+
+#if emissionColor
+	diffuse.xyz += emissionColor* metallicColor.z;
+#endif
+
+#if damageColor
+	diffuse.xyz += damageColor;
+#endif
+
+	o = diffuse;
+#endif
+}
+}

@@ -1,0 +1,36 @@
+﻿varying tex0;
+varying tex1;
+sampler _MainTex;
+
+Pass{
+#RenderQueue -2
+#Blend sourceAlpha oneMinusSourceAlpha
+#ZWrite Off
+#ZTest off
+
+void vs()
+{
+	// x,y,z,w,x,y,z,w
+	// x1,y1,u1,v1,x2,y2,u2,v2
+	var temp;
+	temp.xz = tempm[VB_UV.x];
+	temp.yw = tempm[VB_UV.y];
+	// uv
+	tex0 = temp.zw;
+	temp.zw = [1, 1, 0.5, 1];
+	o = m44(temp, wvpm);
+	// uv2
+	temp = VB_UV.yx - 0.5;
+	temp.x = -temp.x;
+	tex1=temp;
+}
+
+void ps()
+{
+	var temp;
+	temp.x = 0.5 - dp4(tex1.xyxy, tex1.xyxy);
+	kil(temp.x);
+	
+	o = tex(tex0, _MainTex<2d, clamp, linear, nomip>);
+}
+}

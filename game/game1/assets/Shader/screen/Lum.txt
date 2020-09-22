@@ -1,0 +1,32 @@
+varying tex0;
+uniform pixelOffset;
+sampler _MainTex;
+
+Pass{
+#Blend one zero
+#ZWrite Off
+#ZTest off
+
+void vs()
+{
+	o = VB_POSITION;
+	tex0 = VB_UV;
+}
+
+void ps()
+{
+	var texOffset;
+	texOffset.xy = tex0.xy;
+	texOffset.xy-=pixelOffset.xy;
+	var color0 = tex(texOffset.xy, _MainTex <2d,clamp,nearest,nomip>);
+	texOffset.x+=pixelOffset.x;
+	color0 += tex(texOffset.xy, _MainTex <2d,clamp,nearest,nomip>);
+	texOffset.y+=pixelOffset.y;
+	color0 += tex(texOffset.xy, _MainTex <2d,clamp,nearest,nomip>);
+	texOffset.x-=pixelOffset.x;
+	color0 += tex(texOffset.xy, _MainTex <2d,clamp,nearest,nomip>);
+	color0.x = dp3(color0,[0.2125, 0.7154, 0.072]);
+	color0.x *= 0.25;
+	o = color0.x + 0.0001;
+}
+}

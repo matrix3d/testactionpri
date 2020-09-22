@@ -1,0 +1,170 @@
+varying tex0_color;
+varying out_uv2;
+varying out_viewPosition;
+varying out_normal;
+varying out_normal1;
+varying out_normal2;
+varying out_shadowPosition;
+uniform heightmapScale;
+sampler splat0;
+sampler splat1;
+sampler splat2;
+sampler splat3;
+sampler splat4;
+sampler splat5;
+sampler splat6;
+sampler splat7;
+sampler splatAlpha0;
+sampler splatAlpha1;
+sampler normalMap;
+sampler shadowMap;
+sampler lightMap;
+
+Pass{
+#RenderQueue 2000
+#Blend one zero
+
+void vs()
+{
+	var pos;
+	var normal;
+	pos.xyz = m34(VB_POSITION, wm);
+	normal.xyz = m33(VB_NORMAL, wvm);
+	pos.w=1;
+
+
+	var lightmapUV = VB_POSITION.xzxz*heightmapScale;
+	lightmapUV.w = 1-lightmapUV.w;
+	tex0_color = lightmapUV;
+#if lightMap
+#if lightmapScaleOffset
+	lightmapUV.x = lightmapUV.z;
+	lightmapUV.y = lightmapUV.w;
+	//lightmapUV.xy *= lightmapScaleOffset.xy;
+	//lightmapUV.xy += lightmapScaleOffset.zw;
+	//lightmapUV.y = 1-lightmapUV.y;
+	out_uv2 = lightmapUV.xy;
+#endif
+#endif
+
+#if shadowMap
+	out_shadowPosition = m44(pos,lm);
+#endif
+
+	// out
+	pos = m44(pos, vpm);
+	o = pos;
+	normal.xyz = nrm(normal.xyz);
+
+#ifndef DEFERRED
+	out_viewPosition = pos;
+#endif
+
+	// TANGENT
+#if normalMap
+	var tangent;
+	tangent.xyz = m33(VB_TANGENT, wvm);
+	// tangent
+	tangent.xyz = nrm(tangent.xyz);
+	out_normal.x = tangent.x;
+	out_normal1.x = tangent.y;
+	out_normal2.x = tangent.z;
+	// binormal
+	tangent.xyz = crs(normal.xyz, tangent.xyz);
+	tangent.xyz = nrm(tangent.xyz);
+	out_normal.y = tangent.x;
+	out_normal1.y = tangent.y;
+	out_normal2.y = tangent.z;
+	// normal
+	out_normal.zw = normal.x;
+	out_normal1.zw = normal.y;
+	out_normal2.zw = normal.z;
+#else
+	out_normal = normal.xyz;
+#endif
+
+}
+
+void ps()
+{
+	var normal;
+	float4 diffuse;
+	float4 diffuse2;
+	
+	float4 alpha0 = tex(tex0_color.zw, splatAlpha0<2d, repeat, nearest, miplinear>);
+	diffuse = tex(tex0_color.xy, splat0<2d, repeat, nearest, miplinear>)*alpha0.x;
+	
+	#if splat1
+	diffuse += tex(tex0_color.xy, splat1<2d, repeat, nearest, miplinear>)*alpha0.y;
+	#endif
+	
+	#if splat2
+	diffuse += tex(tex0_color.xy, splat2<2d, repeat, nearest, miplinear>)*alpha0.z;
+	#endif
+
+	#if splat3
+	diffuse += tex(tex0_color.xy, splat3<2d, repeat, nearest, miplinear>)*alpha0.w;
+	#endif
+
+#if splatAlpha1
+	float4 alpha1 = tex(tex0_color.zw, splatAlpha1<2d, repeat, nearest, miplinear>);
+	
+	#if splat4
+	diffuse += tex(tex0_color.xy, splat4<2d, repeat, nearest, miplinear>)*alpha1.x;
+	#endif
+	
+	#if splat5
+	diffuse += tex(tex0_color.xy, splat5<2d, repeat, nearest, miplinear>)*alpha1.y;
+	#endif
+	
+	#if splat6
+	diffuse += tex(tex0_color.xy, splat6<2d, repeat, nearest, miplinear>)*alpha1.z;
+	#endif
+
+	#if splat7
+	diffuse += tex(tex0_color.xy, splat7<2d, repeat, nearest, miplinear>)*alpha1.w;
+	#endif
+#endif
+
+	diffuse.w = out_viewPosition.z/out_viewPosition.w;// Depth
+
+	// ·¨Ïß
+#if normalMap
+	normal = tex(tex0_color.xy, normalMap<2d, repeat, nearest, miplinear>);
+	normal.xyz -=0.5;
+	normal.xyz = m33(normal.xyz, out_normal);
+	normal.xyz = nrm(normal.xyz);
+#else
+	normal.xyz = nrm(out_normal.xyz);
+#endif
+
+#if lightMap
+	diffuse.xyz *= tex(out_uv2.xy, lightMap<2d, repeat, nearest, miplinear>);
+#endif
+
+#if shadowMap
+	var shadowPos = out_shadowPosition/out_shadowPosition.w;
+	shadowPos.y = -shadowPos.y;
+	shadowPos.xy = shadowPos.xy*0.5+0.5;
+	
+	/*var shadowDepth = tex(shadowPos.xy, shadowMap<2d,clamp,nearest,nomip>);
+	float depth = sge(shadowDepth.x, shadowPos.z);
+	diffuse.xyz =  sat(depth+0.5);*/
+	
+	shadowPos.xy += 0.00048828125;
+	var shadowDepth = tex(shadowPos.xy, shadowMap<2d,clamp,linear,nomip>);
+	float depth = sge(shadowDepth.x, shadowPos.z);
+	shadowPos.x -= 0.0009765625;
+	shadowDepth = tex(shadowPos.xy, shadowMap<2d,clamp,linear,nomip>);
+	depth+=sge(shadowDepth.x, shadowPos.z);
+	shadowPos.y -= 0.0009765625;
+	shadowDepth = tex(shadowPos.xy, shadowMap<2d,clamp,linear,nomip>);
+	depth+=sge(shadowDepth.x, shadowPos.z);
+	shadowPos.x += 0.0009765625;
+	shadowDepth = tex(shadowPos.xy, shadowMap<2d,clamp,linear,nomip>);
+	diffuse.xyz *=  sat(depth*0.25+0.5);
+#endif
+
+	o = diffuse;
+}
+}

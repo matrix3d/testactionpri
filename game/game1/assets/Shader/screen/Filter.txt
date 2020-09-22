@@ -1,0 +1,40 @@
+varying tex0;
+uniform pixelOffset;
+sampler _MainTex;
+
+Pass{
+#Blend one zero
+#ZWrite Off
+#ZTest off
+
+void vs()
+{
+	o = VB_POSITION;
+	tex0 = VB_UV;
+}
+
+void ps()
+{
+	var texOffset;
+	texOffset.xy = tex0.xy;
+	var color0 = tex(texOffset.xy, _MainTex <2d,clamp,nearest,nomip>);
+	texOffset.x-=pixelOffset.x;
+	color0 += tex(texOffset.xy, _MainTex <2d,clamp,nearest,nomip>);
+	texOffset.y-=pixelOffset.y;
+	color0 += tex(texOffset.xy, _MainTex <2d,clamp,nearest,nomip>);
+	texOffset.x+=pixelOffset.x;
+	color0 += tex(texOffset.xy, _MainTex <2d,clamp,nearest,nomip>);
+	texOffset.x+=pixelOffset.x;
+	color0 += tex(texOffset.xy, _MainTex <2d,clamp,nearest,nomip>);
+	texOffset.y+=pixelOffset.y;
+	color0 += tex(texOffset.xy, _MainTex <2d,clamp,nearest,nomip>);
+	texOffset.y+=pixelOffset.y;
+	color0 += tex(texOffset.xy, _MainTex <2d,clamp,nearest,nomip>);
+	texOffset.x-=pixelOffset.x;
+	color0 += tex(texOffset.xy, _MainTex <2d,clamp,nearest,nomip>);
+	texOffset.x-=pixelOffset.x;
+	color0 += tex(texOffset.xy, _MainTex <2d,clamp,nearest,nomip>);
+
+	o =  color0/9;
+}
+}

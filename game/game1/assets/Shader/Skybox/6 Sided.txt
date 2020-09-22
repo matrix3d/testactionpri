@@ -1,0 +1,161 @@
+varying tex0;
+sampler _UpTex=0.5;
+sampler _DownTex=0.5;
+sampler _RightTex=0.5;
+sampler _LeftTex=0.5;
+sampler _FrontTex=0.5;
+sampler _BackTex=0.5;
+
+Pass{
+	#RenderQueue 0
+	#Blend one zero
+	#ZTest off
+	#ZWrite off
+
+	void vs()
+	{
+		tex0 = VB_UV;
+		var pos = VB_POSITION;
+		pos.z = 1;
+		pos = m44(pos, wvpm);
+		pos.z = 0;
+		o = pos;
+	}
+
+	void ps()
+	{
+		var out = tex(tex0, _FrontTex<2d, clamp, nearest, miplinear>);
+		out.w = 0;
+		o = out;
+	}
+}
+Pass{
+	#RenderQueue 0
+	#Blend one zero
+	#ZTest off
+	#ZWrite off
+
+	void vs()
+	{
+		tex0 = VB_UV;
+		var pos;
+		pos.x = -1;
+		pos.y = VB_POSITION.y;
+		pos.z = VB_POSITION.x;
+		pos.w = 1;
+		pos = m44(pos, wvpm);
+		pos.z = 0;
+		o = pos;
+	}
+
+	void ps()
+	{
+		var out = tex(tex0, _RightTex<2d, clamp, nearest, miplinear>);
+		out.w = 0;
+		o = out;
+	}
+}
+Pass{
+	#RenderQueue 0
+	#Blend one zero
+	#ZTest off
+	#ZWrite off
+
+	void vs()
+	{
+		tex0 = VB_UV;
+		var pos;
+		pos.x = 1;
+		pos.y = VB_POSITION.y;
+		pos.z = -VB_POSITION.x;
+		pos.w = 1;
+		pos = m44(pos, wvpm);
+		pos.z = 0;
+		o = pos;
+	}
+
+	void ps()
+	{
+		var out = tex(tex0, _LeftTex<2d, clamp, nearest, miplinear>);
+		out.w = 0;
+		o = out;
+	}
+}
+Pass{
+	#RenderQueue 0
+	#Blend one zero
+	#ZTest off
+	#ZWrite off
+
+	void vs()
+	{
+		tex0 = VB_UV;
+		var pos;
+		pos.x = -VB_POSITION.x;
+		pos.y = VB_POSITION.y;
+		pos.z = -1;
+		pos.w = 1;
+		pos = m44(pos, wvpm);
+		pos.z = 0;
+		o = pos;
+	}
+
+	void ps()
+	{
+		var out = tex(tex0, _BackTex<2d, clamp, nearest, miplinear>);
+		out.w = 0;
+		o = out;
+	}
+}
+Pass{
+	#RenderQueue 0
+	#Blend one zero
+	#ZTest off
+	#ZWrite off
+
+	void vs()
+	{
+		tex0 = VB_UV;
+		var pos;
+		pos.x = VB_POSITION.x;
+		pos.y = 1;
+		pos.z = -VB_POSITION.y;
+		pos.w = 1;
+		pos = m44(pos, wvpm);
+		pos.z = 0;
+		o = pos;
+	}
+
+	void ps()
+	{
+		var out = tex(tex0, _UpTex<2d, clamp, nearest, miplinear>);
+		out.w = 0;
+		o = out;
+	}
+}
+Pass{
+	#RenderQueue 0
+	#Blend one zero
+	#ZTest off
+	#ZWrite off
+
+	void vs()
+	{
+		tex0 = VB_UV;
+		var pos;
+		pos.x = VB_POSITION.x;
+		pos.y = -1;
+		pos.z = VB_POSITION.y;
+		pos.w = 1;
+		pos = m44(pos, wvpm);
+		pos.z = 0;
+		o = pos;
+	}
+
+	void ps()
+	{
+		var out = tex(tex0, _DownTex<2d, clamp, nearest, miplinear>);
+		out.w = 0;
+		o = out;
+	}
+}

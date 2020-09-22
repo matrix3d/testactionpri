@@ -1,0 +1,18 @@
+Pass{
+#RenderQueue -2
+#Blend one oneMinusSourceAlpha
+#ZWrite Off
+#ZTest off
+void vs(){
+	var temp = [0, 0, 0, 1];
+	temp.xy=VB_UV.xy;
+	temp.y=-temp.y;
+	o = m44(temp, wvpm);
+}
+
+void ps(){
+	o=[1,0,0,1];
+}
+
+
+}

@@ -1,0 +1,31 @@
+varying posData;
+
+Pass{
+#Blend one one
+#ZWrite Off
+#ZTest off
+
+void vs()
+{
+	o = VB_POSITION;
+	posData.x = VB_UV.x * 256;
+	var temp;
+	temp.z = 1 - VB_UV.y;
+	posData.z = temp.z * 256;
+	posData.y = 0;
+	posData.w = 1;
+}
+
+void ps()
+{
+	var color0;
+	color0.xyz = light.xyz - posData.xyz;
+	color0.y = 0;
+	color0.w = dp3(color0.xyz, color0.xyz);
+	color0.w = sqt(color0.w);
+	color0.w *= light.w;
+	color0.w = 1 - color0.w;
+	kil(color0.w);
+	o = color*color0.w*0.5;
+}
+}

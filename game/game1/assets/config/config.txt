@@ -1,0 +1,12 @@
+{
+    "payid": "ysby_yuanbao_(n)",
+    "appid": "34",
+    "appkey": "64f12abae7d66e0c406e53c2e048dab4",
+    "res": "http://114.116.48.138:8123/autores/v0/",
+    "server": "114.116.48.138",
+    "port": 55903,
+    "sdkpid": 55903,
+    "pid": 15,
+    "debugswfpath": "http://192.168.1.250/rm/redmoonAir.swf",
+	"isCache":true
+}

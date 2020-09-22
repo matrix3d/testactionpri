@@ -1,0 +1,33 @@
+varying tex0;
+uniform pixelOffset;
+uniform middleGray;
+sampler _MainTex;
+sampler luminanceTexture;
+sampler blurTexture;
+
+Pass{
+#Blend one zero
+#ZWrite Off
+#ZTest off
+
+void vs()
+{
+	o = VB_POSITION;
+	tex0 = VB_UV;
+}
+
+void ps()
+{
+	var color0 = tex(tex0.xy, _MainTex <2d,clamp,nearest,nomip>);
+	var lum = tex([0.5,0.5], luminanceTexture <2d,clamp,nearest,nomip>);
+	//float fScaled = MIDDLE_GRAY / (fAdaptedLum + 0.001f);
+	//ColorOrig *= fScaled*2/(1+fScaled);
+	lum += 0.001;
+	lum /= middleGray.x;
+	lum += 1;
+	lum = 2/lum;
+	color0 *= lum;
+	color0 += tex(tex0.xy, blurTexture <2d,clamp,linear,nomip>);
+	o = color0;
+}
+}

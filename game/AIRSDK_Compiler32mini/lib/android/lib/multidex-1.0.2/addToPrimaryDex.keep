@@ -1,0 +1,5 @@
+com/adobe/air/GetVersionCode.class
+air/com/adobe/appentry/GetVersionCode.class
+air/com/adobe/appentry/AppEntry.class
+com/adobe/air/ResourceIdMap.class
+com/adobe/air/InstallOfferPingUtils.class

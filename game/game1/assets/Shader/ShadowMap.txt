@@ -1,0 +1,66 @@
+varying tex0;
+sampler _MainTex;
+uniform float _Cutoff;
+
+void skinPosition()
+{
+	var skinTemp;
+	var bonePos = bones[VB_BONE_WEIGHT.x];
+	var quat = frc(bonePos);
+	bonePos = (bonePos - quat) * 0.00048828125;
+	quat = quat * 2.004008016032064 - 1;
+	// Ðý×ª
+	skinTemp.xyz = crs(quat.xyz, VB_POSITION) * 2;
+	pos.xyz = crs(quat.xyz, skinTemp.xyz) + VB_POSITION + quat.w * skinTemp.xyz;
+	// Ëõ·ÅÎ»ÒÆ
+	pos.xyz = (pos.xyz + bonePos.xyz) * bonesPos.w + bonesPos.xyz;
+}
+
+void skinPositionAndNormal()
+{
+	skinPosition();
+	skinTemp.xyz = crs(quat.xyz, VB_NORMAL) * 2;
+	normal.xyz = crs(quat.xyz, skinTemp.xyz) + VB_NORMAL + quat.w * skinTemp.xyz;
+	normal.xyz=m33(normal.xyz, vm);
+}
+
+Pass{
+#Blend one zero
+#ZTest lessEqual
+#ZWrite On
+#ColorMask RGB
+
+void vs()
+{
+	var pos;
+	var normal;
+#if VB_BONE_WEIGHT
+	skinPositionAndNormal();
+#else
+	pos.xyz = m34(VB_POSITION, wm);
+	normal.xyz = m33(VB_NORMAL, wm);
+#endif
+	pos.w=1;
+	pos.xyz -= normal.xyz*0.03;
+	pos = m44(pos, lm);
+	o = pos;
+	tex0 = pos;
+#if _Cutoff
+	tex0.xy = VB_UV.xy;
+#endif
+}
+
+void ps()
+{
+#if _Cutoff
+	var color0 = tex(tex0, _MainTex<2d, repeat, nearest, miplinear>);
+	color0.w -= _Cutoff;
+	kil(color0.w);
+#endif
+	var depth;
+	depth.x = frc(tex0.z);
+	depth.y = tex0.z-depth.x;
+	//bias
+	o = tex0.z/tex0.w+0.005;
+}
+}

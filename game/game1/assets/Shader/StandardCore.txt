@@ -1,0 +1,107 @@
+varying tex0_color;
+varying out_uv2;
+varying out_viewPosition;
+varying out_normal;
+varying out_normal1;
+varying out_normal2;
+varying out_shadowPosition;
+uniform equipColor;
+uniform float _Metallic=0;
+uniform float _GlossMapScale=1;
+uniform float _Glossiness=0.5;
+uniform _EmissionColor;
+uniform damageColor;
+uniform _Color;
+uniform _SSSColor;
+uniform float _Cutoff=0.25;
+uniform lightmapScaleOffset;
+uniform _MainTex_ST;
+sampler _MainTex;
+sampler _MetallicGlossMap=[0,0.5,0,1];
+sampler _BumpMap;
+sampler lightMap;
+sampler shadowMap;
+
+#if _PointLightData
+	uniform vec4 _PointLightData[max_pointLight];
+	uniform vec4 _PointLightColors[max_pointLight];
+#endif
+#if _DirectLightData
+	uniform vec4 _DirectLightData[max_directLight];
+	uniform vec4 _DirectLightColors[max_directLight];
+#endif
+
+#if _Bones
+	uniform vec4 _BonesPos;
+	uniform vec4 _Bones[200];
+#endif
+
+void skinPosition()
+{
+	var skinTemp;
+	var bonePos = _Bones[VB_BONE_WEIGHT.x];
+	var quat = frc(bonePos);
+	bonePos = (bonePos - quat) * 0.00048828125;
+	quat = quat * 2.004008016032064 - 1;
+	// 旋转
+	skinTemp.xyz = crs(quat.xyz, VB_POSITION) * 2;
+	pos.xyz = crs(quat.xyz, skinTemp.xyz) + VB_POSITION + quat.w * skinTemp.xyz;
+	// 缩放位移
+	pos.xyz = (pos.xyz + bonePos.xyz) * _BonesPos.w + _BonesPos.xyz;
+}
+
+void skinPositionAndNormal()
+{
+	skinPosition();
+	skinTemp.xyz = crs(quat.xyz, VB_NORMAL) * 2;
+	normal.xyz = crs(quat.xyz, skinTemp.xyz) + VB_NORMAL + quat.w * skinTemp.xyz;
+	normal.xyz=m33(normal.xyz, vm);
+}
+
+void BRDF1_Unity_PBS()
+{
+	float3 halfDir = nrm(lightDir.xyz + viewDir);
+	float nv = abs(dp3(normal.xyz, viewDir));
+		
+	float nl = saturate(dot(normal.xyz, lightDir.xyz));
+	float nh = saturate(dot(normal.xyz, halfDir));
+
+	float lv = saturate(dot(lightDir.xyz, viewDir));
+	float lh = saturate(dot(lightDir.xyz, halfDir));
+	
+	// Diffuse term
+	float fd90 = 2 * lh * lh * perceptualRoughness+0.5;
+	fd90 -= 1;
+	// Two schlick fresnel term 菲涅尔 边角有更亮的光
+	float lightScatter   = pow(1 - nl,5)*fd90+1;
+	float viewScatter    = pow(1 - nv,5)*fd90+1;
+	float diffuseTerm = lightScatter * viewScatter*nl;
+		
+	// Specular term
+	float roughness = perceptualRoughness*perceptualRoughness;
+	float roughness2 = roughness*roughness;
+	// V
+	float k = roughness * 0.797884560802865;// c = sqrt(2 / Pi)
+	float oneMinusK = 1 - k;
+	float gL = nl * oneMinusK + k;
+	float gV = nv * oneMinusK + k;
+	float V = 0.25 / (gL * gV + 1e-5);
+	// D
+	float sq = max(1e-4, roughness2);
+	float n = (2 / sq) - 2;                          // https://dl.dropboxusercontent.com/u/55891920/papers/mm_brdf.pdf
+	n = max(n, 1e-4);                                  // prevent possible cases of pow(0,0), which could happen when roughness is 1.0 and NdotH is zero
+		
+	float normTerm = (n + 2) * 0.5;
+	float specTerm = pow (nh, n);
+	float D = specTerm * normTerm;
+	
+	float specularTerm = V * D * nl;
+	specularTerm = max(0, specularTerm);
+
+	//lh = 1-lh;
+	//lh = pow(lh,5);
+	//float3 FresnelTerm =(1-specColor) * lh+specColor;
+	
+	pbsColor.xyz = albedo.xyz * (lightColor * diffuseTerm + 0.3);
+	pbsColor.xyz +=lightColor * specColor * specularTerm;
+}

@@ -1,0 +1,1 @@
+call "D:\sdk\AIRSDK_Windows33\bin\adl" -screensize 1024x768:768x1024 -profile mobileDevice application.xml .

@@ -1,0 +1,74 @@
+Pass{
+#RenderQueue -2
+#Blend one oneMinusSourceAlpha
+#ZWrite Off
+#ZTest off
+varying v0;
+varying v1;
+varying v2;
+sampler _MainTex;
+void vs(){
+	var temp=VB_POSITION.xyzw;
+	//temp.y=-temp.y;
+	o = m44(temp, vpm);
+	v0=VB_UV;
+	v1=VB_UV2;
+	v2=VB_UV3;
+}
+
+void ps(){
+	var t0 = tex(v0, _MainTex<2d, linear>);
+	t0=t0*v2;
+	t0.w=t0.y+t0.w;
+	t0.xyz=t0.x+t0.z;
+	
+	//agal1
+	//c.xyz=v0.w;
+	//c=c*v1;
+	//c.xyz=c.xyz*c.w;
+	/////
+	
+	ifg(t0.x,0.5);//如果颜色大于.5 设置颜色为1，提高亮度
+	t0.xyz=v0.w;
+	eif();
+	
+	t0.xyz=t0.xyz*v1.xyz;//材质 乘上 颜色
+	var t2;
+	t2.w=ddy(v0.y);//t2.w=一像素y
+	t2.z=ddx(v0.x);//t2.z=一像素x
+	t2.xy=0;
+	var t1=v0.xyxy+t2;//uv偏移一像素
+	t2=v0.xyxy-t2;
+	
+	var t3 = tex(t1.zy, _MainTex<2d, linear>);//x+1
+	t3=t3*v2;
+	t3=t3.y+t3.w;
+	
+	var t4 = tex(t2.zy, _MainTex<2d, linear>);//x-1
+	t4=t4*v2;
+	t4=t4.y+t4.w;
+	t3=max(t3,t4);
+	
+	t4 = tex(t1.xw, _MainTex<2d, linear>);//y+1
+	t4=t4*v2;
+	t4=t4.y+t4.w;
+	t3=max(t3,t4);
+	
+	t4 = tex(t2.xw, _MainTex<2d, linear>);//y-1
+	t4=t4*v2;
+	t4=t4.y+t4.w;
+	t3=max(t3,t4);
+	
+	t4=v0.w-t0.w;
+	t3.w=t3.w*t4;
+	
+	t1=[0.2,0.2,0.2,1]-t0;
+	t1=t1*t3.w;
+	
+	t0=t0+t1;
+	t0.w=t0.w*v1.w;
+	t0.xyz=t0.xyz*t0.w;
+	
+	o=t0;
+}
+}

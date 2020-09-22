@@ -1,0 +1,60 @@
+varying tex0;
+varying color0;
+varying tex1;
+uniform _HeatTime;
+uniform _HeatForce;
+sampler _MainTex;
+sampler _NoiseTex;
+sampler grabTexture;
+
+Pass{
+#RenderQueue 4000
+#Blend sourceAlpha oneMinusSourceAlpha
+#ZWrite Off
+#ColorMask RGB
+
+void vs()
+{
+	var position = m44(VB_POSITION, wvpm);
+	o = position;
+	position.y = -position.y;
+	position.xy += position.w;
+	position.xy *= 0.5;
+	tex1 = position;
+
+	tex0 = VB_UV.xyxy;
+//	var timeOffset = time;
+//	timeOffset.x *= _HeatTime;
+//	tex.z += timeOffset.x;
+//	tex.w += timeOffset.x;
+//	tex0 = tex;
+#if VB_COLOR32
+	color0 = VB_COLOR32;
+#endif
+}
+
+void ps()
+{
+	var color = tex(tex0, _MainTex<2d, repeat, nearest, miplinear>);
+	color.w *= color.x;
+	color.xyz = 1;
+#if VB_COLOR32
+	color *= color0;
+#endif
+	var noiseUV = time.xyzx;
+	noiseUV *= _HeatTime;
+	noiseUV.zw -= noiseUV.zw;
+	noiseUV += tex0;
+	
+	var noise1 = tex(noiseUV.xy, _NoiseTex<2d, repeat, nearest, miplinear>);
+	var noise2 = tex(noiseUV.zw, _NoiseTex<2d, repeat, nearest, miplinear>);
+	noise1.xy += noise2.xy;
+	noise1.xy -= 1;
+	noise1.xy *=_HeatForce;
+	noise2.xy = tex1.xy/tex1.w;
+	noise1.xy += noise2.xy;
+	var tint = tex(noise1.xy, grabTexture<2d, clamp, linear, nomip>);
+	tint.w = 1;
+	o =  color * tint;
+}
+}

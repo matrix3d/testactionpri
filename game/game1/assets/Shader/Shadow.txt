@@ -1,0 +1,53 @@
+varying tex0;
+sampler _MainTex;
+
+#if _Bones
+	uniform vec4 _BonesPos;
+	uniform vec4 _Bones[200];
+#endif
+
+void skinPosition()
+{
+	var skinTemp;
+	var bonePos = _Bones[VB_BONE_WEIGHT.x];
+	var quat = frc(bonePos);
+	bonePos = (bonePos - quat) * 0.00048828125;
+	quat = quat * 2.004008016032064 - 1;
+	// Ðý×ª
+	skinTemp.xyz = crs(quat.xyz, VB_POSITION) * 2;
+	pos.xyz = crs(quat.xyz, skinTemp.xyz) + VB_POSITION + quat.w * skinTemp.xyz;
+	// Ëõ·ÅÎ»ÒÆ
+	pos.xyz = (pos.xyz + bonePos.xyz) * _BonesPos.w + _BonesPos.xyz;
+}
+
+Pass{
+#ZTest lessEqual
+#ZWrite Off
+#ColorMask RGB
+
+void vs()
+{
+	tex0 = VB_UV;
+	var pos;
+#if VB_BONE_WEIGHT
+	skinPosition();
+	pos.w=1;
+	pos = m44(pos, vpm);
+#else
+	pos = m44(VB_POSITION, wvpm);
+#endif
+	pos.z -= 0.01;
+	o = pos;
+}
+
+void ps()
+{
+	if(alphaTest){
+		var color0 = tex(tex0, _MainTex<2d, repeat, nearest, miplinear>);
+		// AlphaÌÞ³ý
+		color0.w -= 0.25;
+		kil(color0.w);
+	}
+	o = [0,0,0,0.5];
+}
+}

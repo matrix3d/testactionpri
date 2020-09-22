@@ -1,0 +1,160 @@
+<application xmlns="http://ns.adobe.com/air/application/31.0">
+  <id>com.hy9</id>
+  <filename>hy9</filename>
+  <name>hy9</name>
+  <versionNumber>0.0.1</versionNumber>
+  <supportedProfiles>mobileDevice</supportedProfiles>
+  <initialWindow>
+    <title>hy</title>
+    <content>redmoonAir.swf</content>
+    <visible>true</visible>
+    <fullScreen>true</fullScreen>
+    <resizable>false</resizable>
+    <aspectRatio>landscape</aspectRatio>
+    <renderMode>direct</renderMode>
+    <systemChrome>standard</systemChrome>
+    <depthAndStencil>true</depthAndStencil>
+    <autoOrients>false</autoOrients>
+  </initialWindow>
+  <android>
+    <manifestAdditions><![CDATA[<manifest android:installLocation="auto">
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.READ_PHONE_STATE" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+	<uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+	<!--testin-->
+	<uses-permission android:name="android.permission.GET_TASKS" />
+	<uses-permission android:name="android.permission.RECORD_AUDIO" />
+	<uses-permission android:name="android.permission.WAKE_LOCK" />
+	<uses-permission android:name="android.permission.READ_LOGS" />
+	<!--发送短信的权限-->
+	<uses-permission android:name="android.permission.SEND_SMS" />
+	<!-- 微信支付 -->
+	<uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
+	<!--NETWORK_PROVIDER-->
+	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+	<!--   GPS-->
+	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+	<supports-screens android:anyDensity="true" android:smallScreens="true" android:normalScreens="true" android:xlargeScreens="true" android:largeScreens="true" />
+	<application android:allowBackup="true" android:isGame="true" android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+		<meta-data android:name="android.max_aspect" android:value="100.0" />
+		<meta-data android:name="android.vendor.full_screen" android:value="true" />
+		<meta-data android:name="android.notch_support" android:value="true" />
+		<meta-data android:name="notch.config" android:value="portrait|landscape" />
+		<meta-data android:name="IsNoBundle" android:value="1" />
+	</application>
+</manifest>]]></manifestAdditions>
+  </android>
+  <iPhone>
+    <InfoAdditions><![CDATA[
+            <key>ITSAppUsesNonExemptEncryption</key>
+            <false/>
+			<key>beta-reports-active</key>
+			<true/>
+			<key>UIDeviceFamily</key>
+			<array>
+				<string>1</string>
+				<string>2</string>
+			</array>
+
+			<key>NSMicrophoneUsageDescription</key>
+			<string>此 App 需要您的同意才能进行录音</string>
+			<key>NSPhotoLibraryAddUsageDescription</key>
+			<string>为了您的账号安全，游戏需要访问您的相册</string>
+			<key>NSPhotoLibraryUsageDescription</key>
+			<string>为了您的账号安全，游戏需要访问您的相册</string>
+			<key>UILaunchImages</key>
+            <array>
+                <dict>
+                    <key>UILaunchImageMinimumOSVersion</key>
+                    <string>8.0</string>
+                    <key>UILaunchImageName</key>
+                    <string>Default-Landscape-414w-736h@3x~iphone.png</string>
+                    <key>UILaunchImageOrientation</key>
+                    <string>Landscape</string>
+                    <key>UILaunchImageSize</key>
+                    <string>{414, 736}</string>
+                </dict>
+                <dict>
+                    <key>UILaunchImageMinimumOSVersion</key>
+                    <string>8.0</string>
+                    <key>UILaunchImageName</key>
+                    <string>Default-Landscape-812h@3x~iphone.png</string>
+                    <key>UILaunchImageOrientation</key>
+                    <string>Landscape</string>
+                    <key>UILaunchImageSize</key>
+                    <string>{375, 812}</string>
+                </dict>
+                <dict>
+                    <key>UILaunchImageMinimumOSVersion</key>
+                    <string>8.0</string>
+                    <key>UILaunchImageName</key>
+                    <string>Default-Landscape~ipad.png</string>
+                    <key>UILaunchImageOrientation</key>
+                    <string>Landscape</string>
+                    <key>UILaunchImageSize</key>
+                    <string>{359, 512}</string>
+                </dict>
+                <dict>
+                    <key>UILaunchImageMinimumOSVersion</key>
+                    <string>8.0</string>
+                    <key>UILaunchImageName</key>
+                    <string>Default-LandscapeRight~ipad.png</string>
+                    <key>UILaunchImageOrientation</key>
+                    <string>LandscapeRight</string>
+                    <key>UILaunchImageSize</key>
+                    <string>{359, 512}</string>
+                </dict>
+                <dict>
+                    <key>UILaunchImageMinimumOSVersion</key>
+                    <string>8.0</string>
+                    <key>UILaunchImageName</key>
+                    <string>Default-LandscapeLeft@2x~ipad.png</string>
+                    <key>UILaunchImageOrientation</key>
+                    <string>LandscapeLeft</string>
+                    <key>UILaunchImageSize</key>
+                    <string>{768, 1024}</string>
+                </dict>
+                <dict>
+                    <key>UILaunchImageMinimumOSVersion</key>
+                    <string>8.0</string>
+                    <key>UILaunchImageName</key>
+                    <string>Default-LandscapeRight@2x~ipad.png</string>
+                    <key>UILaunchImageOrientation</key>
+                    <string>LandscapeRight</string>
+                    <key>UILaunchImageSize</key>
+                    <string>{768, 1024}</string>
+                </dict>
+                <dict>
+                    <key>UILaunchImageMinimumOSVersion</key>
+                    <string>8.0</string>
+                    <key>UILaunchImageName</key>
+                    <string>Default-Landscape@2x.png</string>
+                    <key>UILaunchImageOrientation</key>
+                    <string>Landscape</string>
+                    <key>UILaunchImageSize</key>
+                    <string>{1024, 1366}</string>
+                </dict>
+               
+            </array>
+
+            <key>UIApplicationExitsOnSuspend</key>
+            <false />
+            
+            <key>NSAppTransportSecurity</key>
+            <dict>
+                <key>NSAllowsArbitraryLoads</key>
+                <true/>
+            </dict>
+			<key>gameAppId</key>
+<string>3</string>
+ 		]]></InfoAdditions>
+    <requestedDisplayResolution>high</requestedDisplayResolution>
+  </iPhone>
+  <extensions>
+    <!--<extensionID>com.xyane.utils</extensionID>-->
+  </extensions>
+</application>

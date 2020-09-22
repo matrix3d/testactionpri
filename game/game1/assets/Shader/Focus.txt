@@ -1,0 +1,78 @@
+varying tex0;
+varying out_normal;
+sampler _MainTex;
+uniform float _Cutoff;
+
+#if _Bones
+	uniform vec4 _BonesPos;
+	uniform vec4 _Bones[200];
+#endif
+
+void skinPosition()
+{
+	var skinTemp;
+	var bonePos = _Bones[VB_BONE_WEIGHT.x];
+	var quat = frc(bonePos);
+	bonePos = (bonePos - quat) * 0.00048828125;
+	quat = quat * 2.004008016032064 - 1;
+	// 旋转
+	skinTemp.xyz = crs(quat.xyz, VB_POSITION) * 2;
+	pos.xyz = crs(quat.xyz, skinTemp.xyz) + VB_POSITION + quat.w * skinTemp.xyz;
+	// 缩放位移
+	pos.xyz = (pos.xyz + bonePos.xyz) * _BonesPos.w + _BonesPos.xyz;
+}
+
+void skinPositionAndNormal()
+{
+	skinPosition();
+	skinTemp.xyz = crs(quat.xyz, VB_NORMAL) * 2;
+	normal.xyz = crs(quat.xyz, skinTemp.xyz) + VB_NORMAL + quat.w * skinTemp.xyz;
+	normal.xyz=m33(normal.xyz, vm);
+}
+
+Pass{
+#Blend sourceAlpha oneMinusSourceAlpha
+#ZTest lessEqual
+#ZWrite Off
+void vs()
+{
+	var pos;
+	var normal;
+#if VB_BONE_WEIGHT
+	skinPositionAndNormal();
+	pos.w=1;
+	pos = m44(pos, vpm);
+#else
+	pos = m44(VB_POSITION, wvpm);
+	normal.xyz = m33(VB_NORMAL, wvm);
+#endif
+	normal.xyz = nrm(normal.xyz);
+	out_normal = normal.xyzz;
+	
+	// Normal Offset
+	normal.w = pos.w * 0.006;
+	normal.xy *= normal.w;
+	pos.xy += normal.xy;
+	o = pos;
+	tex0 = VB_UV;
+}
+
+void ps()
+{
+#if _Cutoff
+	var color0 = tex(tex0, _MainTex<2d,repeat,nearest, miplinear>);
+	color0.w -= _Cutoff;
+	kil(color0.w);
+#endif
+	
+	// 法线nrm
+	var normal;
+	normal.xyz = nrm(out_normal.xyz);
+	
+	normal.w = abs(normal.z);
+	normal.w = pow(normal.w,2);
+	normal.xyz = color.xyz;
+	
+	o = normal;
+}
+}

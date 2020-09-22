@@ -1,0 +1,61 @@
+varying tex0;
+sampler _MainTex;
+sampler dofMap;
+uniform fogColor;
+uniform foci;
+
+Pass{
+//#Blend sourceAlpha oneMinusSourceAlpha
+#Blend one zero
+#ZWrite Off
+#ZTest off
+
+void vs()
+{
+	o = VB_POSITION;
+	tex0 = VB_UV;
+	tex0.zw = VB_POSITION.xxxy;
+}
+
+void ps()
+{
+	// diffuse
+	var diffuse = tex(tex0.xy, _MainTex<2d,clamp,nearest,nomip>);
+
+	// dofColor
+	var dofColor = tex(tex0.xy, dofMap<2d,clamp,linear,nomip>);
+	
+	var position;
+	position.w = pm[2].w/(diffuse.w - pm[2].z);
+	position.xy = tex0.zw * position.w;
+	position.z = pm[2].z * position.w + pm[2].w;
+	
+	//float dofAlpha = sat(position.z/position.w);
+	var viewPosition = position;
+	//viewPosition.xyz /= position.w;
+	viewPosition.z = position.w-foci.x;
+	viewPosition.x /= pm[0].x;
+	viewPosition.y /= pm[1].y;
+	viewPosition.w = dp3(viewPosition.xyz,viewPosition.xyz);
+	viewPosition.w = sqt(viewPosition.w);
+	
+	//position = m44(position,ivpm);
+
+	float dofAlpha = sat(viewPosition.w*0.08);
+	dofAlpha *= dofAlpha;
+	dofAlpha *= 0.8;
+	dofAlpha *= sne(diffuse.w, 0);
+	
+	diffuse.xyz = dofColor.xyz*dofAlpha + diffuse.xyz*(1-dofAlpha);
+	
+	// FOG
+	//float fog = diffuse.w/fogColor.w;
+	//fog *= fog;
+	//diffuse.xyz = diffuse.xyz*(1-fog) + fogColor.xyz*fog;
+
+	//diffuse.xyz = tex(tex0.xy, shadowMap<2d,clamp,linear,nomip>);
+	//diffuse.xyz = dofColor.w;
+	//diffuse.w = 0.75;
+	o = diffuse;
+}
+}

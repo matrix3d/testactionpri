@@ -1,0 +1,18 @@
+#Blend=1
+#ZWrite=0
+#ZTest=0
+
+varying color0;
+
+#vs2
+void main()
+{
+	o = m44(a0, wvpm);
+	color0 = a1;
+}
+
+#ps2
+void main()
+{
+	o = color0;
+}

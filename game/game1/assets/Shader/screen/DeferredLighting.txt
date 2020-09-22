@@ -1,0 +1,51 @@
+varying tex0;
+sampler _MainTex;
+sampler lightmapTexture;
+
+Pass{
+#Blend one zero
+#ZWrite Off
+#ZTest off
+
+void vs()
+{
+	o = VB_POSITION;
+	tex0 = VB_UV;
+	tex0.z = VB_POSITION.x;
+	tex0.w = VB_POSITION.y;
+}
+
+void ps()
+{
+	var color0;
+	// Normal
+	var normal = tex(tex0.xy, _MainTex<2d,clamp,nearest,nomip>);
+	normal.w = normal.z;
+	color0.xy = normal.xy* normal.xy;
+	color0.x += color0.y;
+	normal.z = 1 - color0.x;
+	normal.z = sqt(normal.z);
+	normal.z = -normal.z;
+	
+	color0.w = dp3(normal.xyz, light);
+	color0.w = max(color0.w,0) + 0.3;
+	
+	// Pos
+#if lightmapTexture
+	normal.xy = tex0.zw * normal.w;
+	normal.z = pm[2].z * normal.w;
+	normal.z = pm[2].w + normal.z;
+	var pos;
+	pos.x = dp4(normal,ivpm);
+	pos.y = dp4(normal,ivpm[2]);
+	// Lightmap
+	pos.xy /= 256;
+	pos.y = 1-pos.y;
+	pos = tex(pos.xy, lightmapTexture<2d,clamp,linear,nomip>);
+	
+	o = pos*color0.w;
+#else
+	o = color0.w;
+#endif
+}
+}

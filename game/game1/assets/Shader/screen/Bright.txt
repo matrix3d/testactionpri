@@ -1,0 +1,54 @@
+varying tex0;
+uniform pixelOffset;
+uniform middleGray;
+sampler _MainTex;
+sampler luminanceTexture;
+
+Pass{
+#Blend one zero
+#ZWrite Off
+#ZTest off
+
+void vs()
+{
+	o = VB_POSITION;
+	tex0 = VB_UV;
+}
+
+void ps()
+{
+	var texOffset;
+	texOffset.xy = tex0.xy;
+	var color0 = tex(texOffset.xy, _MainTex <2d,clamp,nearest,nomip>);
+	texOffset.x-=pixelOffset.x;
+	color0 += tex(texOffset.xy, _MainTex <2d,clamp,nearest,nomip>);
+	texOffset.y-=pixelOffset.y;
+	color0 += tex(texOffset.xy, _MainTex <2d,clamp,nearest,nomip>);
+	texOffset.x+=pixelOffset.x;
+	color0 += tex(texOffset.xy, _MainTex <2d,clamp,nearest,nomip>);
+	texOffset.x+=pixelOffset.x;
+	color0 += tex(texOffset.xy, _MainTex <2d,clamp,nearest,nomip>);
+	texOffset.y+=pixelOffset.y;
+	color0 += tex(texOffset.xy, _MainTex <2d,clamp,nearest,nomip>);
+	texOffset.y+=pixelOffset.y;
+	color0 += tex(texOffset.xy, _MainTex <2d,clamp,nearest,nomip>);
+	texOffset.x-=pixelOffset.x;
+	color0 += tex(texOffset.xy, _MainTex <2d,clamp,nearest,nomip>);
+	texOffset.x-=pixelOffset.x;
+	color0 += tex(texOffset.xy, _MainTex <2d,clamp,nearest,nomip>);
+	
+	var lum = tex([0.5,0.5], luminanceTexture <2d,clamp,nearest,nomip>);
+	lum.x += 0.001;
+	
+	// MIDDLE_GRAY = 0.45
+	// BRIGHT_THRESHOLD = 0.7;
+	// color0 =  color0/9*MIDDLE_GRAY/(lum + 0.001)
+	color0*=0.11111111;
+	color0*=middleGray.x;
+	color0/=lum.x;
+	
+	lum = color0 - 0.8;
+	lum = max(lum, 0);
+	o = lum/color0;
+}
+}

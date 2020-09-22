@@ -1,0 +1,31 @@
+varying tex0;
+sampler _MainTex;
+sampler mulTexture;
+uniform _Color;
+
+Pass{
+#Blend one zero
+#ZWrite Off
+#ZTest off
+
+void vs()
+{
+	o = VB_POSITION;
+	tex0 = VB_UV;
+}
+
+void ps()
+{
+	var color0 = tex(tex0, _MainTex<2d,clamp,nearest,nomip>);
+	
+#if mulTexture
+	color0 *= tex(tex0, mulTexture<2d,clamp,nearest,nomip>);
+#endif
+
+#if _Color
+	color0 *= _Color;
+#endif
+	o = color0;
+
+}
+}

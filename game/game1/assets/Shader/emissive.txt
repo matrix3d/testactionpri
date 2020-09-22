@@ -1,0 +1,40 @@
+﻿varying tex0;
+sampler _MainTex;
+
+void skinPosition()
+{
+	var skinTemp;
+	var bonePos = bones[VB_BONE_WEIGHT.x];
+	var quat = frc(bonePos);
+	bonePos = (bonePos - quat) * 0.00048828125;
+	quat = quat * 2.004008016032064 - 1;
+	// 旋转
+	skinTemp.xyz = crs(quat.xyz, VB_POSITION) * 2;
+	pos.xyz = crs(quat.xyz, skinTemp.xyz) + VB_POSITION + quat.w * skinTemp.xyz;
+	// 缩放位移
+	pos.xyz = (pos.xyz + bonePos.xyz) * bonesPos.w + bonesPos.xyz;
+}
+
+Pass{
+#RenderQueue 3000
+#Blend one one
+#ZWrite Off
+
+void vs()
+{
+	tex0 = VB_UV;
+	var pos;
+#if VB_BONE_WEIGHT
+	skinPosition();
+	pos.w=1;
+	o = m44(pos, vpm);
+#else
+	o = m44(VB_POSITION, wvpm);
+#endif
+}
+
+void ps()
+{
+	o = tex(tex0, _MainTex<2d, repeat, nearest, miplinear>);
+}
+}

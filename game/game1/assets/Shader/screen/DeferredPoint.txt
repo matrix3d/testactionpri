@@ -1,0 +1,56 @@
+varying posData;
+sampler _MainTex;
+
+Pass{
+#Blend one one
+#ZWrite Off
+#ZTest off
+
+void vs()
+{
+	o = VB_POSITION;
+	posData.xy = VB_UV.xy;
+	posData.z = VB_POSITION.x;
+	posData.w = VB_POSITION.y;
+}
+
+void ps()
+{
+	// Normal
+	var normal = tex(posData.xy, _MainTex<2d,clamp,nearest,nomip>);
+	normal.w = normal.z;
+	normal.z = 0;
+	normal.z = dp3(normal.xyz, normal.xyz);
+	normal.z = 1 - normal.x;
+	normal.z = sqt(normal.z);
+	normal.z = -normal.z;
+	
+	// Pos
+	var pos;
+	pos.xy = posData.zw * normal.w;
+	pos.x /= pm.x;
+	pos.y /= pm[1].y;
+	pos.z = pm[3].z*normal.w;
+	
+	var pointDir;
+	pointDir.xyz = light.xyz - pos.xyz;
+	
+	// Alpha
+	var color0;
+	color0.w = dp3(pointDir.xyz, pointDir.xyz);
+	color0.w = sqt(color0.w);
+	//点光单位向量化
+	pointDir.xyz /= color0.w;
+	color0.w *= light.w;
+	color0.w = 1 - color0.w;
+	kil(color0.w);
+	
+	// d
+	color0.x = dp3(pointDir.xyz, normal.xyz);
+	color0.x = sat(color0.x);
+	color0.x *= color0.w;
+	color0 = color * color0.x;
+	//normal.xyz = pointDir.xyz;
+	o = color0;
+}
+}

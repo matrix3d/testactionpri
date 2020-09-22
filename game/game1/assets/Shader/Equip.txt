@@ -1,0 +1,142 @@
+varying tex0_color;
+varying tex1_fog;
+varying out_normal;
+#vs
+uniform tiling;
+void main()
+{
+	var pos;
+	// Lightmap UV
+	if(VB_BONE_WEIGHT){
+		var skinTemp;
+		var bonePos = bones[VB_BONE_WEIGHT.x];
+		var quat = frc(bonePos);
+		bonePos = (bonePos - quat) * 0.00048828125;
+		quat = quat * 2.004008016032064 - 1;
+		// 旋转
+		skinTemp.xyz = crs(quat.xyz, VB_POSITION) * 2;
+		pos.xyz = crs(quat.xyz, skinTemp.xyz) + VB_POSITION + quat.w * skinTemp.xyz;
+		// 缩放位移
+		pos.xyz = (pos.xyz + bonePos.xyz) * bonesPos.w + bonesPos.xyz;
+	}
+	else pos.xyz = m34(VB_POSITION, wm);
+	pos.w=1;
+	
+	if(!DEFERRED)
+	{
+		var temp2;
+		temp2.xy = pos.xz * 0.00390625;
+		temp2.y = -temp2.y;
+		tex1_fog = temp2.xyyy;
+	}
+	
+	// out
+	pos = m44(pos, vpm);
+	o = pos;
+	
+	//
+	if(tiling){
+		tex0_color.xy = VB_UV.xy * tiling.xy;
+		tex0_color.zw = VB_UV.zz;
+	}
+	else
+		tex0_color = VB_UV.xyzz;
+
+	// Normal
+	if(VB_BONE_WEIGHT){
+		// 旋转
+		skinTemp.xyz = crs(quat.xyz, VB_NORMAL) * 2;
+		pos.xyz = crs(quat.xyz, skinTemp.xyz) + VB_NORMAL + quat.w * skinTemp.xyz;
+		pos.xyz=m33(pos, vm);
+	}
+	else pos.xyz = m33(VB_NORMAL, wvm);
+	pos.xyz = nrm(pos.xyz);
+	out_normal = pos;
+}
+
+#ps
+uniform equipColor;
+uniform disappear;
+sampler _MainTex;
+//EQUIP2
+sampler glowTexture;
+void main()
+{
+	var color0 = tex(tex0_color, _MainTex<2d, repeat, linear, nomip>);
+	// Alpha剔除
+	var color1;
+	color1.x = color0.w - 0.25;
+	kil(color1.x);
+	
+	if(DEFERRED)
+	{
+		o0 = color0;
+		color1.xyz = nrm(out_normal.xyz);
+		color1.z = out_normal.w;
+		color1.w = 1;
+		o1 = color1;
+	}
+	else
+	{
+		// Lightmap
+		//color1 = tex(tex1_fog.xy, lightmapTexture<2d, repeat, linear, nomip>);
+		//color0 *= color1;
+	
+		// 去除肤色
+		var skinColor;
+		skinColor.xyz = color0.xyz - [0.9, 0.6, 0.4];
+		skinColor.w = sat(dp3(skinColor.xyz, skinColor.xyz));
+	
+		// 法线nrm
+		var normal;
+		normal.xyz = nrm(out_normal.xyz);
+		// 修正反法线
+		normal.xyz *= slt(normal.z,0) * 2 - 1;
+	
+		// 光照
+		normal.w = dp3(normal.xyz, light);
+		color0.xyz *= max(normal.w,0) + 0.3;
+	
+		// glowMap
+		var glowColor;
+		if(glow){
+			glowColor.xy = normal.zy * 0.5;
+			glowColor.z = skinColor.w + time.y;
+			glowColor.z *= 0.1;
+			glowColor.xy += glowColor.z;
+			glowColor.y += glowColor.z;
+			glowColor = tex(glowColor.xy, glowTexture<2d, repeat, linear, nomip>);
+			glowColor *= equipColor;
+			// 去除肤色
+			glowColor.xyz *= skinColor.w;
+			color0 += glowColor.xyz;
+		} else {
+			// 去除肤色
+			color0.xyz *= equipColor.xyz * skinColor.w + 1 - skinColor.w;
+		}
+	
+		// 高光 Specular Light R = 2 * (N.L) * N – L
+		glowColor.z = sat(normal.z * normal.w * -2 + light.z);
+		glowColor.x = skinColor.w * 15 + 1;
+		glowColor.w = pow(glowColor.z, glowColor.x);
+		//glowColor.x /= 16;
+		glowColor.w *= skinColor.w;
+
+	
+		// 懵圈
+		color0.xyz += [0.5,0.6,0.8] * (pow(1-abs(normal.z),7) + glowColor.w);
+	
+		// 焚烧 (1->0)
+		if(disappear)
+		{
+			color1.xy = sin(tex0_color.xy * 50);
+			color1.x = (color1.x + color1.y + 2) * 0.25 - disappear;
+			kil(color1.x);
+			color1.x = pow(1-color1.x,16);
+			color0.x += color1.x;
+			color0.y += color1.x * 0.4;
+		}
+		
+		o = color0;
+	}
+}
