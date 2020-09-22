@@ -37,7 +37,7 @@ jobs:
         run: |
           cd game
           dir
-          pack.bat
+          .\pack.bat
       - name: build project
         run: |
          # zip --junk-paths my-artifact HelloWorld.class HelloWorld.java
