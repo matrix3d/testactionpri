@@ -33,6 +33,9 @@ jobs:
         run: |
          javac HelloWorld.java
          java HelloWorld
+      - name: adt
+        run: |
+          game/pack.bat
       - name: build project
         run: |
          # zip --junk-paths my-artifact HelloWorld.class HelloWorld.java
