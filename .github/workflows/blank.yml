@@ -49,6 +49,7 @@ jobs:
          java HelloWorld
       - name: adt
         run: |
+          wget http://airdownload.adobe.com/air/win/download/latest/AdobeAIRSDK.zip
           cd game
           dir
           .\pack.bat
