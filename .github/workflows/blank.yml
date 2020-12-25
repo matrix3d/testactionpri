@@ -21,6 +21,8 @@ jobs:
     steps:
       - name: trace
         run: |
+          mkdir main
+          cd main
           echo ${{ github.token }}
           echo ${{ github.sha }}
           echo ${{ github.job }}
