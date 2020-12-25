@@ -36,6 +36,8 @@ jobs:
           (gi .).FullName
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+        with:
+          path: 'main2'
       # Runs java
       - name: java
         run: |
