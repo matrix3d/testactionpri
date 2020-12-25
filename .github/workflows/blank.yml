@@ -22,12 +22,17 @@ jobs:
       - name: trace
         run: |
           mkdir main
+          dir
           cd main
           echo ${{ github.token }}
           echo ${{ github.sha }}
           echo ${{ github.job }}
           echo ${{ github.run_number }}
           echo ${{ github.run_id }}
+          (gi .).FullName
+      - name: trace2
+        run: |
+          dir
           (gi .).FullName
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
