@@ -26,13 +26,13 @@ jobs:
           echo ${{ github.job }}
           echo ${{ github.run_number }}
           echo ${{ github.run_id }}
-          echo cd
+          cd
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
       # Runs java
       - name: java
         run: |
-         echo cd
+         cd
          javac HelloWorld.java
          java HelloWorld
       - name: adt
