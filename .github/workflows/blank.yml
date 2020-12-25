@@ -77,3 +77,11 @@ jobs:
           asset_path: ./game/rm.apk
           asset_name: rm.apk
           asset_content_type: application/zip  
+      - name: pages
+        id: pages
+        run: git
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+          
+          
