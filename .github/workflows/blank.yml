@@ -41,6 +41,7 @@ jobs:
       # Runs java
       - name: java
         run: |
+         cd main2
          (gi .).FullName
          dir
          javac HelloWorld.java
@@ -91,7 +92,7 @@ jobs:
           asset_content_type: application/zip  
       - name: pages
         id: pages
-        run: git
+        run: git --version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
