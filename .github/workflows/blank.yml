@@ -36,12 +36,13 @@ jobs:
           (gi .).FullName
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
         with:
-          path: 'main2'
+          ref: gh-pages
+          path: gh-pages 
       # Runs java
       - name: java
         run: |
-         cd main2
          (gi .).FullName
          dir
          javac HelloWorld.java
