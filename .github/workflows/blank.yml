@@ -35,6 +35,7 @@ jobs:
       - name: java
         run: |
          (gi .).FullName
+         dir
          javac HelloWorld.java
          java HelloWorld
       - name: adt
