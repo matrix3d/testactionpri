@@ -95,7 +95,9 @@ jobs:
         id: pages
         run: |
           dir
-          (gi .).FullName
+          copy game/rm.apk gh-pages
+          cd gh-pages
+          dir
           
           
           
