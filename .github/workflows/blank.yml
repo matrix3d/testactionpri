@@ -93,9 +93,9 @@ jobs:
           asset_content_type: application/zip  
       - name: pages
         id: pages
-        run: git --version
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          dir
+          (gi .).FullName
           
           
           
