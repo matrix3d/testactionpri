@@ -3,6 +3,7 @@ import json
 env_dist = os.environ
 with open(env_dist.get("GITHUB_EVENT_PATH")) as json_file:
     data = json.load(json_file)
+    print(data)
     code=data.comment.body
     x = re.findall("public\s+class\s+(\S+)[\s{]" , code)
     className=x[0]
