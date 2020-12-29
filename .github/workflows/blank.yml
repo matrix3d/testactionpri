@@ -46,6 +46,7 @@ jobs:
       - name: java
         run: |
          python main.py
+         echo %asclassname%
          dir
          javac HelloWorld.java
          java HelloWorld
