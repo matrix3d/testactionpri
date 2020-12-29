@@ -112,8 +112,7 @@ jobs:
       - name: tar 
         id: tar
         run: |
-          cd public
-          tar –xf './apache-royale-0.9.8-bin-js.zip'
+          tar –xf 'public/apache-royale-0.9.8-bin-js.zip'
           dir
        
           
