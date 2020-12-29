@@ -109,7 +109,9 @@ jobs:
         with:
          url: "http://apacheroyaleci2.westus2.cloudapp.azure.com:8080/job/royale-asjs_jsonly/lastSuccessfulBuild/artifact/out/apache-royale-0.9.8-bin-js.zip"
          target: public/ 
-         run: |
+      - name: tar 
+        id: tar
+        run: |
           cd public
           tar –xvf apache-royale-0.9.8-bin-js.zip
           dir
