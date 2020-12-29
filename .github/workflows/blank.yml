@@ -19,9 +19,6 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - name: py
-        run: |
-          python main.py
       - name: trace
         run: |
           mkdir main
@@ -46,7 +43,7 @@ jobs:
       # Runs java
       - name: java
         run: |
-         (gi .).FullName
+         python main.py
          dir
          javac HelloWorld.java
          java HelloWorld
