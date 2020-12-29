@@ -113,7 +113,8 @@ jobs:
         id: tar
         run: |
           attrib 'public/apache-royale-0.9.8-bin-js.zip'
-          tar –xf 'public/apache-royale-0.9.8-bin-js.zip'
+          tar -a -x -f my-artifact.zip
+          tar –a -x -f 'public/apache-royale-0.9.8-bin-js.zip'
           dir
        
           
