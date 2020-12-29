@@ -22,4 +22,6 @@ jobs:
     steps:
       - name: trace
         run: |
-          echo ${{ toJSON(github.event) }}
+         echo "$GITHUB_CONTEXT"
+        env:
+         GITHUB_CONTEXT: ${{ toJson(github) }}
