@@ -22,4 +22,4 @@ jobs:
     steps:
       - name: trace
         run: |
-          echo ${{ github.event }}
+          echo ${{ toJSON(github.event) }}
