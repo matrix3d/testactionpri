@@ -8,10 +8,14 @@ with open(env_dist.get("GITHUB_EVENT_PATH")) as json_file:
     code=data["comment"]["body"]
     x = re.findall("public\s+class\s+(\S+)[\s{]" , code)
     className=x[0]
-    f = open(str(data["comment"]["id"])+"/"+className+".as", "w")
+    
+    id=str(data["comment"]["id"])
+    if(not os.path.isdir(id)):
+        os.mkdir(id)
+    f = open(id+"/"+className+".as", "w")
     f.write(code)
     f.close()
     
-    f = open(str(data["comment"]["id"])+"/main.txt", "w")
+    f = open(id+"/main.txt", "w")
     f.write(className)
     f.close()
