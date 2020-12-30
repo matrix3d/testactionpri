@@ -26,7 +26,6 @@ jobs:
           mkdir main
           dir
           cd main
-          echo ${{ github.GITHUB_WORKSPACE }}
           echo ${{ github.token }}
           echo ${{ github.sha }}
           echo ${{ github.job }}
