@@ -125,8 +125,7 @@ jobs:
           echo $rootpath
           echo $sdk
           echo $thirdParty
-          royale-asjs/js/bin/asjsc.bat ${{ github.event.comment.id }}\$rootpath.as -js-output-optimization=skipAsCoercions -library-path+=$sdk\frameworks\js\libs\CoreJS.swc -library-path+=$sdk\frameworks\js\libs\XMLJS.swc -library-path+=$sdk\js\libs\js.swc  -source-path+=$rootpath\src -source-path+=${{ github.event.comment.id }} -source-path+=$thirdParty\adobe -source-path+=$thirdParty\box2dflash -source-path+=$thirdParty\MornUILib\src -source-path+=$thirdParty\protebuff -source-path+=$thirdParty\utils -source-path+=$thirdParty\MornUIDemo\src -source-path+=$thirdParty\MinimalComps_0_9_10 -warn-public-vars=false -remove-circulars=true -js-compiler-option+='--compilation_level ADVANCED_OPTIMIZATIONS' -targets=JSRoyale -define=CONFIG::as_only,false -define=CONFIG::js_only,true -define=COMPILE::JS,true -warnings=false
-          
+          royale-asjs/js/bin/asjsc.bat "${{ github.event.comment.id }}\$rootpath.as -js-output-optimization=skipAsCoercions -library-path+=$sdk\frameworks\js\libs\CoreJS.swc -library-path+=$sdk\frameworks\js\libs\XMLJS.swc -library-path+=$sdk\js\libs\js.swc  -source-path+=$rootpath\src -source-path+=${{ github.event.comment.id }} -source-path+=$thirdParty\adobe -source-path+=$thirdParty\box2dflash -source-path+=$thirdParty\MornUILib\src -source-path+=$thirdParty\protebuff -source-path+=$thirdParty\utils -source-path+=$thirdParty\MornUIDemo\src -source-path+=$thirdParty\MinimalComps_0_9_10 -warn-public-vars=false -remove-circulars=true -js-compiler-option+='--compilation_level ADVANCED_OPTIMIZATIONS' -targets=JSRoyale -define=CONFIG::as_only,false -define=CONFIG::js_only,true -define=COMPILE::JS,true -warnings=false"
           royale-asjs/js/bin/asjsc.bat Main.as -js-compiler-option+="--compilation_level ADVANCED_OPTIMIZATIONS"
        
           
