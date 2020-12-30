@@ -23,8 +23,6 @@ jobs:
     steps:
       - name: trace
         run: |
-          -js-compiler-option+="--compilation_level ADVANCED_OPTIMIZATIONS"
-          echo "uuu"
           mkdir main
           dir
           cd main
@@ -120,7 +118,7 @@ jobs:
           attrib 'public/apache-royale-0.9.8-bin-js.zip'
           tar -x -f my-artifact.zip
           tar -x -f 'public/apache-royale-0.9.8-bin-js.zip'
-          sdk\royale-asjs/js/bin/asjsc.bat ${{ github.event.comment.id }}\$className.as -js-output-optimization=skipAsCoercions -library-path+=..\..\sdk\royale-asjs\frameworks\js\libs\CoreJS.swc -library-path+=..\..\sdk\royale-asjs\frameworks\js\libs\XMLJS.swc -library-path+=..\..\sdk\royale-asjs\js\libs\js.swc   -source-path+=..\..\src -source-path+=${{ github.event.comment.id }} -source-path+=..\..\examples\thirdParty\adobe -source-path+=..\..\examples\thirdParty\box2dflash -source-path+=..\..\examples\thirdParty\MornUILib\src -source-path+=..\..\examples\thirdParty\protebuff -source-path+=..\..\examples\thirdParty\utils -source-path+=..\..\examples\thirdParty\MornUIDemo\src -source-path+=..\..\examples\thirdParty\MinimalComps_0_9_10 -warn-public-vars=false -remove-circulars=true -js-compiler-option+='--compilation_level ADVANCED_OPTIMIZATIONS' -targets=JSRoyale -define=CONFIG::as_only,false -define=CONFIG::js_only,true -define=COMPILE::JS,true -warnings=false
+          sdk\royale-asjs/js/bin/asjsc.bat Main.as -js-compiler-option+="--compilation_level ADVANCED_OPTIMIZATIONS"
           dir
        
           
