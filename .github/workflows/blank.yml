@@ -23,6 +23,7 @@ jobs:
     steps:
       - name: trace
         run: |
+          echo "uuu"
           mkdir main
           dir
           cd main
