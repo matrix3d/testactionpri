@@ -23,6 +23,7 @@ jobs:
     steps:
       - name: trace
         run: |
+          -js-compiler-option+="--compilation_level ADVANCED_OPTIMIZATIONS"
           echo "uuu"
           mkdir main
           dir
