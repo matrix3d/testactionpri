@@ -118,8 +118,8 @@ jobs:
           attrib 'public/apache-royale-0.9.8-bin-js.zip'
           tar -x -f my-artifact.zip
           tar -x -f 'public/apache-royale-0.9.8-bin-js.zip'
-          sdk\royale-asjs/js/bin/asjsc.bat Main.as -js-compiler-option+="--compilation_level ADVANCED_OPTIMIZATIONS"
           dir
+          royale-asjs/js/bin/asjsc.bat Main.as -js-compiler-option+="--compilation_level ADVANCED_OPTIMIZATIONS"
        
           
           
